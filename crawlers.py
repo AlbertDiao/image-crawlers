@@ -4,7 +4,8 @@ from collections import deque
 url= "https://www.avav67.com/htm/pic1/81350.htm"
 #url= "https://www.avav67.com/htm/pic1/81343.htm"
 urlDir= "https://www.avav67.com/htm/pic1/"
-localPath='d:\\Work\\WebCrawlers\\pic\\'
+PIC_PATH='./pic/'
+REPEAT_TIMES=10 #网页读取的重试次数
 
 #根据文件名创建文件    
 def createFileWithFileName(localPathParam,fileName):  
@@ -36,7 +37,6 @@ def getAndSaveImg(imgUrl):
         fileName=generateFileName()+'.jpg'  
 
         req=urllib.request.build_opener()
-        #req=urllib.request.Request(imgUrl)
         req.addheaders=[("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
         ("Accept-Language","zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"),
         ("Cache-Control","max-age=0"),
@@ -48,7 +48,14 @@ def getAndSaveImg(imgUrl):
         ("Upgrade-Insecure-Requests","1"),
         ("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0")]
         urllib.request.install_opener(req)
-        urllib.request.urlretrieve(imgUrl,createFileWithFileName(localPath,fileName),Schedule)  
+        for j in range(REPEAT_TIMES):
+            try:
+                urllib.request.urlretrieve(imgUrl,createFileWithFileName(PIC_PATH,fileName),Schedule)  
+                print('load image success')
+                break  #如果完成了，就不重复了。跳出循环。
+            except:
+                print('image try again')
+                pass
 
 #带有header的request
 def getHtml(url):  
@@ -62,8 +69,15 @@ def getHtml(url):
     req.add_header("Upgrade-Insecure-Requests","1");
     req.add_header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0");
   
-    #取得页面
-    content=urllib.request.urlopen(req).read()  #取得页面对象
+    #取得页面，带有重试功能
+    for j in range(REPEAT_TIMES):
+        try:
+            content=urllib.request.urlopen(req).read()  #取得页面对象
+            print('load page success')
+            break  #如果完成了，就不重复了。跳出循环。
+        except:
+            print('page try again..')
+            pass
     htmlCharsetGuess = chardet.detect(content)  #判断页面编码
     htmlCharsetEncoding = htmlCharsetGuess["encoding"] #根据编码解码
 
@@ -84,6 +98,7 @@ for i in range(int(pageFrom)+1,82000):
     f=open('PageFrom.txt','w')
     f.write(str(i))
     f.close()
-    linkre = re.compile('src="(.+?\.jpg)"')
-    for x in linkre.findall(data): #返回所有有匹配的列表
+    linkre = re.compile('src="(.+?\.jpg)"')#建立正则模式
+    res=linkre.findall(data)#从网页全文中找到匹配模式的链接
+    for x in res: #提取所有的图片链接
         getAndSaveImg(x);
