@@ -82,7 +82,7 @@ for i in range(int(pageFrom)+1,82000):
     print(htmURL)
     data=getHtml(htmURL)
     f=open('PageFrom.txt','w')
-    f.write(str(i))
+    f.writeline(str(i))
     f.close()
     linkre = re.compile('src="(.+?\.jpg)"')
     for x in linkre.findall(data): #返回所有有匹配的列表
