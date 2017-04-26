@@ -1,4 +1,5 @@
-﻿import urllib.request,re,uuid,os,chardet
+﻿import urllib,re,uuid,os,chardet
+import urllib2
 from collections import deque
 #url= "https://www.avav67.com/htm/index.htm"
 url= "https://www.avav67.com/htm/pic1/81350.htm"
@@ -36,7 +37,7 @@ def getAndSaveImg(imgUrl):
     if( len(imgUrl)!= 0 ):  
         fileName=generateFileName()+'.jpg'  
 
-        req=urllib.request.build_opener()
+        req=urllib.build_opener()
         req.addheaders=[("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
         ("Accept-Language","zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"),
         ("Cache-Control","max-age=0"),
@@ -47,10 +48,10 @@ def getAndSaveImg(imgUrl):
         ("If-None-Match","d111e995bf5ed21:0"),
         ("Upgrade-Insecure-Requests","1"),
         ("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0")]
-        urllib.request.install_opener(req)
+        urllib.install_opener(req)
         for j in range(REPEAT_TIMES):
             try:
-                urllib.request.urlretrieve(imgUrl,createFileWithFileName(PIC_PATH,fileName),Schedule)  
+                urllib.urlretrieve(imgUrl,createFileWithFileName(PIC_PATH,fileName),Schedule)  
                 print('load image success')
                 break  #如果完成了，就不重复了。跳出循环。
             except:
@@ -60,7 +61,7 @@ def getAndSaveImg(imgUrl):
 #带有header的request
 def getHtml(url):  
     #伪造头部建立request请求的对象
-    req=urllib.request.Request(url)
+    req=urllib2.Request(url)
     req.add_header("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
     req.add_header("Accept-Language","zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3");
     req.add_header("Connection","keep-alive");
@@ -72,7 +73,7 @@ def getHtml(url):
     #取得页面，带有重试功能
     for j in range(REPEAT_TIMES):
         try:
-            content=urllib.request.urlopen(req).read()  #取得页面对象
+            content=urllib2.urlopen(req).read()  #取得页面对象
             print('load page success')
             break  #如果完成了，就不重复了。跳出循环。
         except:
