@@ -1,16 +1,17 @@
-﻿import urllib,re,uuid,os,chardet
-import urllib2
+﻿import re,uuid,os,chardet
+import urllib,urllib2
 from collections import deque
 #url= "https://www.avav67.com/htm/index.htm"
 url= "https://www.avav67.com/htm/pic1/81350.htm"
 #url= "https://www.avav67.com/htm/pic1/81343.htm"
 urlDir= "https://www.avav67.com/htm/pic1/"
-PIC_PATH='./pic/'
+PIC_PATH='/home/albert/WebCrawlers/pic/'
 REPEAT_TIMES=10 #网页读取的重试次数
 
 #根据文件名创建文件    
 def createFileWithFileName(localPathParam,fileName):  
-    totalPath=localPathParam+fileName  
+    totalPath=localPathParam+fileName
+    print(totalPath)
     if not os.path.exists(totalPath):  
         file=open(totalPath,'a+')  
         file.close()  
@@ -20,15 +21,19 @@ def createFileWithFileName(localPathParam,fileName):
 def generateFileName():  
     return str(uuid.uuid1())
 
+'''''
+显示下载进度
+a:已经下载的数据块
+b:数据块的大小
+c:远程文件的大小
+'''
 def Schedule(a,b,c):
-    '''''
-    a:已经下载的数据块
-    b:数据块的大小
-    c:远程文件的大小
-   '''
-    per = 100.0 * a * b / c
-    if per > 100 :
-        per = 100
+    if c>0:
+	per = 100.0 * a * b / c
+	if per > 100 :
+	    per = 100
+    else:
+	per=0
     print('%.2f%%'%per)
 
 #根据url保存图片为文件
@@ -37,7 +42,7 @@ def getAndSaveImg(imgUrl):
     if( len(imgUrl)!= 0 ):  
         fileName=generateFileName()+'.jpg'  
 
-        req=urllib.build_opener()
+        req=urllib2.build_opener()
         req.addheaders=[("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
         ("Accept-Language","zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"),
         ("Cache-Control","max-age=0"),
@@ -48,7 +53,7 @@ def getAndSaveImg(imgUrl):
         ("If-None-Match","d111e995bf5ed21:0"),
         ("Upgrade-Insecure-Requests","1"),
         ("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0")]
-        urllib.install_opener(req)
+        urllib2.install_opener(req)
         for j in range(REPEAT_TIMES):
             try:
                 urllib.urlretrieve(imgUrl,createFileWithFileName(PIC_PATH,fileName),Schedule)  
@@ -84,7 +89,7 @@ def getHtml(url):
 
     return content.decode(htmlCharsetEncoding) 
 
-#getAndSaveImg('https://img.581gg.com/picdata-watermark/a1/165/16542-1.jpg') #测试下载单张图片
+#getAndSaveImg('https://img.581gg.com/picdata-watermark/a1/167/16785-1.jpg') #测试下载单张图片
 
 #载入爬虫进度
 f=open('PageFrom.txt','r')
