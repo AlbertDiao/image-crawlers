@@ -1,14 +1,29 @@
-﻿import re,uuid,os,chardet
+﻿'''
+Todo:
+    -加入日志功能
+    提取网页Title,保存图片标记
+'''
+import re,uuid,os,chardet,time
 import urllib,urllib2
 import socket
-#url= "https://www.avav67.com/htm/index.htm"
-url= "https://www.avav67.com/htm/pic1/81350.htm"
-#url= "https://www.avav67.com/htm/pic1/81343.htm"
-urlDir= "https://www.avav67.com/htm/pic1/"
-PIC_PATH='/home/albert/WebCrawlers/pic/'
+
+#初始化配置
+urlDir= "https://www.avav67.com/htm/pic1/" #网页前缀
+PIC_PATH='/home/albert/WebCrawlers/pic/' #图片保存地址
+LOG_PATH='/home/albert/WebCrawlers/log/' #图片保存地址
 REPEAT_TIMES=10 #网页读取的重试次数
 socket.setdefaulttimeout(30) #通过设置socket实现urlretrieve超时
 
+
+#取得当前时间字串
+def getTimeStr():
+    return time.strftime('%Y%m%d%H%M%S',time.localtime(time.time()))
+
+#将str文件保存到日志中
+def addLog(str):
+    log.write(getTimeStr()+': ')
+    log.writelines(str)
+    
 #生成带路径文件名，名字随机
 def genFileName():  
     return PIC_PATH+str(uuid.uuid1())+'.jpg'
@@ -79,7 +94,14 @@ def getHtml(url):
 
     return content.decode(htmlCharsetEncoding) 
 
+'''
+    main program start from here
+    '''
 #getImg('https://img.581gg.com/picdata-watermark/a1/167/16785-1.jpg') #测试下载单张图片
+
+#建立日志文件
+logName=LOG_PATH+getTimeStr()+'.txt'
+log=open(logName,'w')
 
 #载入爬虫进度
 f=open('PageFrom.txt','r')
@@ -90,6 +112,7 @@ f.close()
 for i in range(int(pageFrom)+1,82000):
     htmURL=urlDir+str(i)+'.htm';
     print(htmURL)
+    addLog(htmURL)
     data=getHtml(htmURL)
     f=open('PageFrom.txt','w')
     f.write(str(i))

@@ -90,6 +90,7 @@ ENV/
 
 # 小黄图保存在本地就行了
 pic/
+log/
 picsample.htm
 *~
 *.swp
