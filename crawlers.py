@@ -1,33 +1,25 @@
 ﻿import re,uuid,os,chardet
 import urllib,urllib2
-from collections import deque
+import socket
 #url= "https://www.avav67.com/htm/index.htm"
 url= "https://www.avav67.com/htm/pic1/81350.htm"
 #url= "https://www.avav67.com/htm/pic1/81343.htm"
 urlDir= "https://www.avav67.com/htm/pic1/"
 PIC_PATH='/home/albert/WebCrawlers/pic/'
 REPEAT_TIMES=10 #网页读取的重试次数
+socket.setdefaulttimeout(30) #通过设置socket实现urlretrieve超时
 
-#根据文件名创建文件    
-def createFileWithFileName(localPathParam,fileName):  
-    totalPath=localPathParam+fileName
-    print(totalPath)
-    if not os.path.exists(totalPath):  
-        file=open(totalPath,'a+')  
-        file.close()  
-        return totalPath  
+#生成带路径文件名，名字随机
+def genFileName():  
+    return PIC_PATH+str(uuid.uuid1())+'.jpg'
 
-#生成一个文件名字符串   
-def generateFileName():  
-    return str(uuid.uuid1())
-
-'''''
+'''
 显示下载进度
 a:已经下载的数据块
 b:数据块的大小
 c:远程文件的大小
 '''
-def Schedule(a,b,c):
+def schedule(a,b,c):
     if c>0:
 	per = 100.0 * a * b / c
 	if per > 100 :
@@ -37,11 +29,9 @@ def Schedule(a,b,c):
     print('%.2f%%'%per)
 
 #根据url保存图片为文件
-def getAndSaveImg(imgUrl):  
+def getImg(imgUrl):  
     print(imgUrl)
     if( len(imgUrl)!= 0 ):  
-        fileName=generateFileName()+'.jpg'  
-
         req=urllib2.build_opener()
         req.addheaders=[("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
         ("Accept-Language","zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"),
@@ -56,7 +46,7 @@ def getAndSaveImg(imgUrl):
         urllib2.install_opener(req)
         for j in range(REPEAT_TIMES):
             try:
-                urllib.urlretrieve(imgUrl,createFileWithFileName(PIC_PATH,fileName),Schedule)  
+                urllib.urlretrieve(imgUrl,genFileName(),schedule)  
                 print('load image success')
                 break  #如果完成了，就不重复了。跳出循环。
             except:
@@ -89,7 +79,7 @@ def getHtml(url):
 
     return content.decode(htmlCharsetEncoding) 
 
-#getAndSaveImg('https://img.581gg.com/picdata-watermark/a1/167/16785-1.jpg') #测试下载单张图片
+#getImg('https://img.581gg.com/picdata-watermark/a1/167/16785-1.jpg') #测试下载单张图片
 
 #载入爬虫进度
 f=open('PageFrom.txt','r')
@@ -107,4 +97,4 @@ for i in range(int(pageFrom)+1,82000):
     linkre = re.compile('src="(.+?\.jpg)"')#建立正则模式
     res=linkre.findall(data)#从网页全文中找到匹配模式的链接
     for x in res: #提取所有的图片链接
-        getAndSaveImg(x);
+        getImg(x);
