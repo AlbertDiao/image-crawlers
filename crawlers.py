@@ -11,6 +11,7 @@ import socket
 urlDir= "https://www.avav67.com/htm/pic1/" #网页前缀
 PIC_PATH='/home/albert/WebCrawlers/pic/' #图片保存地址
 LOG_PATH='/home/albert/WebCrawlers/log/' #图片保存地址
+IDX_NAME='/home/albert/WebCrawlers/index.txt' #图片索引
 REPEAT_TIMES=10 #网页读取的重试次数
 socket.setdefaulttimeout(30) #通过设置socket实现urlretrieve超时
 
@@ -22,11 +23,25 @@ def getTimeStr():
 #将str文件保存到日志中
 def addLog(str):
     log.write(getTimeStr()+': ')
-    log.writelines(str)
+    log.write(str)
+    log.write('\r\n')
+    log.flush()
     
-#生成带路径文件名，名字随机
-def genFileName():  
-    return PIC_PATH+str(uuid.uuid1())+'.jpg'
+#将name-title对保存到索引文件中
+def addIdx(name,tl):
+    idx.write(name)
+    idx.write(',')
+    idx.write(tl.encode('gbk'))
+    idx.write('\r\n')
+    idx.flush()
+
+#生成随机字符串
+def genUUID():
+    return str(uuid.uuid1())
+
+#根据name生成带路径文件名
+def genFullName(name):  
+    return PIC_PATH+name+'.jpg'
 
 '''
 显示下载进度
@@ -44,8 +59,11 @@ def schedule(a,b,c):
     print('%.2f%%'%per)
 
 #根据url保存图片为文件
-def getImg(imgUrl):  
+def getImg(imgUrl,title):  
     print(imgUrl)
+    print(title)
+    fileName=genUUID()
+    fullName=genFullName(fileName)
     if( len(imgUrl)!= 0 ):  
         req=urllib2.build_opener()
         req.addheaders=[("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
@@ -61,12 +79,14 @@ def getImg(imgUrl):
         urllib2.install_opener(req)
         for j in range(REPEAT_TIMES):
             try:
-                urllib.urlretrieve(imgUrl,genFileName(),schedule)  
+                urllib.urlretrieve(imgUrl,fullName,schedule)  
+		addIdx(fileName,title)
                 print('load image success')
                 break  #如果完成了，就不重复了。跳出循环。
-            except:
-                print('image try again')
-                pass
+	    except Exception,e:  
+		    print Exception,":",e
+		    print('image try again')
+            pass
 
 #带有header的request
 def getHtml(url):  
@@ -94,30 +114,46 @@ def getHtml(url):
 
     return content.decode(htmlCharsetEncoding) 
 
+#将htm网页的title取出
+def getTitle(htm):
+    linkre = re.compile('<title>(.*)</title>')
+    res=linkre.findall(htm)
+    if len(res):
+	return res[0]
+    else:
+	return 'no title'
+
+
 '''
     main program start from here
-    '''
-#getImg('https://img.581gg.com/picdata-watermark/a1/167/16785-1.jpg') #测试下载单张图片
+'''
 
 #建立日志文件
 logName=LOG_PATH+getTimeStr()+'.txt'
 log=open(logName,'w')
+#建立索引文件
+idx=open(IDX_NAME,'a')
 
 #载入爬虫进度
 f=open('PageFrom.txt','r')
 pageFrom=f.readline()
 f.close()
 
+#getImg('https://img.581gg.com/picdata-watermark/a1/167/16785-1.jpg') #测试下载单张图片
 #顺序爬取网页
 for i in range(int(pageFrom)+1,82000):
     htmURL=urlDir+str(i)+'.htm';
     print(htmURL)
     addLog(htmURL)
     data=getHtml(htmURL)
+    #更新进度，方便断点续爬
     f=open('PageFrom.txt','w')
     f.write(str(i))
     f.close()
-    linkre = re.compile('src="(.+?\.jpg)"')#建立正则模式
+    #提取标题
+    title=getTitle(data)
+    #提取图片地址
+    linkre = re.compile('src="(.+?\.jpg)"')#建立jpg图片链接的正则模式
     res=linkre.findall(data)#从网页全文中找到匹配模式的链接
     for x in res: #提取所有的图片链接
-        getImg(x);
+        getImg(x,title);
