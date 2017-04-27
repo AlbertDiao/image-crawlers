@@ -8,11 +8,11 @@ import urllib,urllib2
 import socket
 
 #初始化配置
-urlDir= "https://www.avav67.com/htm/pic1/" #网页前缀
+urlDir= "https://www.avav37.com/htm/pic1/" #网页前缀
 PIC_PATH='/home/albert/WebCrawlers/pic/' #图片保存地址
 LOG_PATH='/home/albert/WebCrawlers/log/' #图片保存地址
 IDX_NAME='/home/albert/WebCrawlers/index.txt' #图片索引
-REPEAT_TIMES=10 #网页读取的重试次数
+REPEAT_TIMES=2 #网页读取的重试次数
 socket.setdefaulttimeout(30) #通过设置socket实现urlretrieve超时
 
 
@@ -65,21 +65,23 @@ def getImg(imgUrl,title):
     fileName=genUUID()
     fullName=genFullName(fileName)
     if( len(imgUrl)!= 0 ):  
-        req=urllib2.build_opener()
-        req.addheaders=[("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
-        ("Accept-Language","zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"),
-        ("Cache-Control","max-age=0"),
-        ("Connection","keep-alive"),
-        ("Cookie","__cfduid=ded0eaf16312b4afa0a6e39fc580dc4af1493044918"),
-        ("Host","img.581gg.com"),
-        ("If-Modified-Since","Sun, 25 Dec 2016 15:00:09 GMT"),
-        ("If-None-Match","d111e995bf5ed21:0"),
-        ("Upgrade-Insecure-Requests","1"),
-        ("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0")]
-        urllib2.install_opener(req)
-        for j in range(REPEAT_TIMES):
+	req=urllib2.Request(imgUrl)
+	req.add_header("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        req.add_header("Accept-Language","zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3");
+        req.add_header("Cache-Control","max-age=0");
+        req.add_header("Connection","keep-alive");
+        req.add_header("Cookie","__cfduid=ded0eaf16312b4afa0a6e39fc580dc4af1493044918");
+        req.add_header("Host","img.581gg.com");
+        req.add_header("If-Modified-Since","Sun, 25 Dec 2016 15:00:09 GMT");
+        req.add_header("If-None-Match","d111e995bf5ed21:0");
+        req.add_header("Upgrade-Insecure-Requests","1");
+        req.add_header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0");
+	for j in range(REPEAT_TIMES):
             try:
-                urllib.urlretrieve(imgUrl,fullName,schedule)  
+        	content=urllib2.urlopen(req).read()  #取得页面对象
+		fpic=open(fullName,'wb')
+		fpic.write(content)
+		fpic.close()
 		addIdx(fileName,title)
                 print('load image success')
                 break  #如果完成了，就不重复了。跳出循环。
@@ -92,13 +94,15 @@ def getImg(imgUrl,title):
 def getHtml(url):  
     #伪造头部建立request请求的对象
     req=urllib2.Request(url)
+    #req.add_header("Host","www.avav37.com");
+    req.add_header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0");
     req.add_header("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
     req.add_header("Accept-Language","zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3");
+    req.add_header("Cookie","__cfduid=def144a606154c9ef23d1d4b71009c14e1493277774; Hm_lvt_767e27c6fc5a7b6a90ba665ed5f7559b=1493277779; Hm_lpvt_767e27c6fc5a7b6a90ba665ed5f7559b=1493278903");
     req.add_header("Connection","keep-alive");
-    req.add_header("Cookie","__cfduid=d85710970946c06297ba709024e8d61ee1493027396; Hm_lvt_767e27c6fc5a7b6a90ba665ed5f7559b=1493027401; Hm_lpvt_767e27c6fc5a7b6a90ba665ed5f7559b=1493029319");
-    req.add_header("Host","www.avav67.com");
     req.add_header("Upgrade-Insecure-Requests","1");
-    req.add_header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0");
+    req.add_header("If-Modified-Since","Thu, 05 Jan 2017 00:34:21 GMT");
+    req.add_header("Cache-Control","max-age=0");
   
     #取得页面，带有重试功能
     for j in range(REPEAT_TIMES):
@@ -109,6 +113,8 @@ def getHtml(url):
         except:
             print('page try again..')
             pass
+    if j>=REPEAT_TIMES-1:
+	return ''
     htmlCharsetGuess = chardet.detect(content)  #判断页面编码
     htmlCharsetEncoding = htmlCharsetGuess["encoding"] #根据编码解码
 
@@ -139,13 +145,17 @@ f=open('PageFrom.txt','r')
 pageFrom=f.readline()
 f.close()
 
-#getImg('https://img.581gg.com/picdata-watermark/a1/167/16785-1.jpg') #测试下载单张图片
+#getImg('https://img.581gg.com/picdata-watermark/a1/167/16785-1.jpg','cesih') #测试下载单张图片
+
 #顺序爬取网页
-for i in range(int(pageFrom)+1,82000):
+for i in range(int(pageFrom)+1,82505):
     htmURL=urlDir+str(i)+'.htm';
     print(htmURL)
     addLog(htmURL)
     data=getHtml(htmURL)
+    if len(data)<=0:
+	pass
+    #print(data)
     #更新进度，方便断点续爬
     f=open('PageFrom.txt','w')
     f.write(str(i))
