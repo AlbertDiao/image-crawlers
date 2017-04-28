@@ -1,7 +1,10 @@
-﻿'''
+﻿#!/usr/bin/env python
+'''
 Todo:
     -加入日志功能
-    提取网页Title,保存图片标记
+    -提取网页Title,保存图片标记
+How to use:
+nohup python crawlers.py
 '''
 import re,uuid,os,chardet,time
 import urllib,urllib2
@@ -61,7 +64,7 @@ def schedule(a,b,c):
 #根据url保存图片为文件
 def getImg(imgUrl,title):  
     print(imgUrl)
-    print(title)
+    #print(title)
     fileName=genUUID()
     fullName=genFullName(fileName)
     if( len(imgUrl)!= 0 ):  
