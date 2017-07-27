@@ -94,3 +94,5 @@ log/
 picsample.htm
 *~
 *.swp
+*.bak
+*.out

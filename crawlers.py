@@ -1,8 +1,5 @@
 ﻿#!/usr/bin/env python
 '''
-Todo:
-    -加入日志功能
-    -提取网页Title,保存图片标记
 How to use:
 nohup python crawlers.py
 '''
